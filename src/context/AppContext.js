@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export const AppContext = createContext();  // creation context
 
-export default function AppContextProvider({children}){
+export default function AppContextProvider({children}) {
     const [loading , setloading] = useState(false);
     const [posts , setposts] = useState([]);
     const [page , setpage] = useState(1);
@@ -12,28 +12,29 @@ export default function AppContextProvider({children}){
     const [isDarkMode, setIsDarkMode] = useState(false);
     const navigate = useNavigate();
 
-    // fill the data
-    async function fetchBlogsPost(page = 1 , tag=null , category){
+    async function fetchBlogsPost(page = 1, tag = null, category = null, searchQuery = null) {
         setloading(true);
         let url = `${baseUrl}?page=${page}`;
-        if(tag){
+        if(searchQuery) {
+            url += `&search=${searchQuery}`;
+        }
+        if(tag) {
             url += `&tag=${tag}`;
         }
-        if(category){
+        if(category) {
             url += `&category=${category}`;
         }
-        try{
+        try {
             const result = await fetch(url);
             const data = await result.json();
             if (!data.posts || data.posts.length === 0)
-            throw new Error("Something Went Wrong");
+                throw new Error("Something Went Wrong");
 
             setpage(data.page);
             setposts(data.posts);
             settotalPage(data.totalPages);
-        }
-        catch(error){
-            console.log("error");
+        } catch(error) {
+            console.log("error", error);
 
             setpage(1);
             setposts([]);
@@ -42,19 +43,16 @@ export default function AppContextProvider({children}){
         setloading(false);
     }
 
-    function handlePageChange(page){
-        navigate( { search: `?page=${page}`});
+    function handlePageChange(page) {
+        navigate({ search: `?page=${page}` });
         setpage(page);
-        
     }
 
     const toggleMode = () => {
         setIsDarkMode(!isDarkMode);
-        // Optionally, save mode preference to local storage
         localStorage.setItem("darkMode", JSON.stringify(!isDarkMode));
-      };
+    };
 
-    // cantains the required data to sent(Provider)
     const value = {
         posts,
         setposts,
@@ -71,7 +69,7 @@ export default function AppContextProvider({children}){
         toggleMode
     };
 
-    return <AppContext.Provider value = {value}>
+    return <AppContext.Provider value={value}>
         {children}
     </AppContext.Provider>
 }
